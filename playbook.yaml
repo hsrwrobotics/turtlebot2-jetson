@@ -131,6 +131,17 @@
   tags: deploy
 
   tasks:
+    - name: Install Kobuki udev rule (creates /dev/kobuki)
+      copy:
+        src: deploy/60-kobuki.rules
+        dest: /etc/udev/rules.d/60-kobuki.rules
+        mode: "0644"
+      register: kobuki_udev_rule
+
+    - name: Apply Kobuki udev rule to connected devices
+      shell: udevadm control --reload-rules && udevadm trigger --subsystem-match=tty
+      when: kobuki_udev_rule.changed
+
     - name: Create compose directory
       file:
         path: /opt/compose
@@ -150,4 +161,4 @@
         mode: "0600"
 
     - name: Start containers via docker compose
-      command: docker compose -f /opt/compose/docker-compose.yml up -d --remove-orphans
+      command: docker compose -f /opt/compose/docker-compose.yml up -d --pull always --remove-orphans

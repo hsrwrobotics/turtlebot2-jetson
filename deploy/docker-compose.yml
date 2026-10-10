@@ -6,7 +6,6 @@ services:
       ros2 launch kobuki kobuki.launch.py
       namespace:=${NAMESPACE}
     environment:
-      - RMW_IMPLEMENTATION=rmw_fastrtps_cpp
       - ROS_DOMAIN_ID=10
       - ROS_LOCALHOST_ONLY=0
       - ROS_NAMESPACE=${NAMESPACE}
@@ -23,7 +22,6 @@ services:
       ros2 launch rosbridge_server
       rosbridge_websocket_launch.xml
     environment:
-      - RMW_IMPLEMENTATION=rmw_fastrtps_cpp
       - ROS_DOMAIN_ID=10
       - ROS_LOCALHOST_ONLY=0
     restart: unless-stopped

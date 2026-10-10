@@ -70,7 +70,7 @@ uv run ansible-playbook playbook.yaml --tags deploy
 The playbook does two things:
 
 - **provision** — removes the GUI (headless), refreshes + upgrades apt, installs the Docker Engine + Compose plugin (focal / arm64), and adds `jetson` to the `docker` group.
-- **deploy** — writes `/opt/compose/docker-compose.yml` and `/opt/compose/.env`, then runs `docker compose up -d`.
+- **deploy** — installs the Kobuki udev rule on the host (creates `/dev/kobuki`), writes `/opt/compose/docker-compose.yml` and `/opt/compose/.env`, then runs `docker compose up -d`.
 
 ## 5. Verify
 
@@ -87,12 +87,15 @@ docker ps          # expect kobuki, rosbridge all running
 - `ansible.cfg` — Ansible defaults (inventory path, Python interpreter).
 - `deploy/docker-compose.yml` — the two-container stack.
 - `deploy/.env.example` — template for `deploy/.env` (copy it; never commit the real one).
+- `deploy/60-kobuki.rules` — host udev rule that creates `/dev/kobuki`; the `kobuki` container sees it through its `/dev` mount.
 - `kobuki/` — multi-stage Dockerfile for the ROS 2 Humble Kobuki image.
 - `.github/workflows/kobuki-docker-publish.yml` — builds + publishes `tsecretino/kobuki` to Docker Hub on push to `main`.
 
 ## Rebuilding / publishing the ROS image
 
-Pushing to `main` (touching `kobuki/`) triggers CI, which builds `linux/arm64` and pushes `tsecretino/kobuki:latest` to Docker Hub. Set `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` as repo secrets. To build locally:
+Pushing to `main` (touching `kobuki/`) triggers CI, which builds `linux/arm64` and pushes `tsecretino/kobuki:latest` plus `tsecretino/kobuki:<git sha>` to Docker Hub. To roll a board back, point the compose file at a SHA tag. Set `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` as repo secrets.
+
+The image builds only the packages with no Humble release (`kobuki_ros`, `cmd_vel_mux`, the `kobuki` launch package) from [CollaborativeRoboticsLab/kobuki](https://github.com/CollaborativeRoboticsLab/kobuki), pinned by `KOBUKI_REF` in `kobuki/Dockerfile`. Everything else (`kobuki_core`, `ecl_*`, `sophus`, …) comes from the ROS apt repo. Bump `KOBUKI_REF` to pick up upstream changes. To build locally:
 
 ```bash
 docker buildx build --platform linux/arm64 -f kobuki/Dockerfile -t tsecretino/kobuki:latest .
