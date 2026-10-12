@@ -37,6 +37,7 @@ RUN --mount=type=bind,from=builder,source=/kobuki/src,target=/tmp/src \
     apt-get install -y \
         ros-humble-joy \
         ros-humble-rmw-cyclonedds-cpp \
+        ros-humble-rmw-zenoh-cpp \
         ros-humble-rosbridge-server && \
     rm -rf /var/lib/apt/lists/* /root/.ros/rosdep
 
