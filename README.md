@@ -1,11 +1,16 @@
 # Robotics Lab — Jetson Nano TurtleBot 2 Provisioning
 
-Provisions **five Jetson Nano 2GB** boards (each mounted on a TurtleBot 2) into identical, headless Ubuntu 20.04 servers that run Docker. Each board runs two host-network containers:
+Provisions **five Jetson Nano 2GB** boards (each mounted on a TurtleBot 2) into identical, headless Ubuntu 20.04 servers that run Docker. Each board runs these host-network containers:
 
-| Container   | Image              | Role                                            |
-|-------------|--------------------|-------------------------------------------------|
-| `kobuki`    | `tsecretino/kobuki` | ROS 2 Humble Kobuki base                        |
-| `rosbridge` | `tsecretino/kobuki`   | WebSocket bridge over ROS 2 (`rosbridge_suite`)             |
+| Container   | Image                 | Role                                                              |
+|-------------|-----------------------|-------------------------------------------------------------------|
+| `tailscale` | `tailscale/tailscale` | Tailscale VPN node                                                |
+| `kobuki`    | `tsecretino/kobuki`   | ROS 2 Humble Kobuki base                                          |
+| `camera`    | `tsecretino/kobuki`   | Asus Xtion Pro Live depth camera (`openni2_camera`)               |
+| `scan`      | `tsecretino/kobuki`   | Fake 2D `/scan` from the depth image (`depthimage_to_laserscan`)  |
+| `rosbridge` | `tsecretino/kobuki`   | WebSocket bridge over ROS 2 (`rosbridge_suite`)                   |
+
+All ROS containers use Zenoh (`RMW_IMPLEMENTATION` and `ZENOH_CONFIG_OVERRIDE` from `.env`) on `ROS_DOMAIN_ID=10`.
 
 ROS 2 runs **inside Docker** (a jammy container), so the host stays a clean Ubuntu 20.04 (focal) machine.
 
@@ -77,7 +82,7 @@ The playbook does two things:
 On a board:
 
 ```bash
-docker ps          # expect kobuki, camera, rosbridge all running
+docker ps          # expect tailscale, kobuki, camera, scan, rosbridge all running
 ```
 
 ## Files
@@ -85,7 +90,7 @@ docker ps          # expect kobuki, camera, rosbridge all running
 - `playbook.yaml` — the Ansible automation (provision + deploy).
 - `inventory.ini` — board IPs + credentials.
 - `ansible.cfg` — Ansible defaults (inventory path, Python interpreter).
-- `deploy/docker-compose.yml` — the three-container stack (kobuki, camera, rosbridge).
+- `deploy/docker-compose.yml` — the stack (tailscale, kobuki, camera, scan, rosbridge).
 - `deploy/.env.example` — template for `deploy/.env` (copy it; never commit the real one).
 - `deploy/60-kobuki.rules` — host udev rule that creates `/dev/kobuki`; the `kobuki` container sees it through its `/dev` mount.
 - `kobuki/` — multi-stage Dockerfile for the ROS 2 Humble Kobuki image.
