@@ -28,14 +28,17 @@ ENV WORKSPACE_ROOT=/kobuki
 ENV RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
 
 # Runtime deps resolved by rosdep from the built packages' package.xml files, plus
-# what the launch files use without declaring it (joy) and the extra services.
+# what the launch files use without declaring it (joy) and the extra services
+# (rosbridge, and the OpenNI2 driver for the Asus Xtion depth camera).
 RUN --mount=type=bind,from=builder,source=/kobuki/src,target=/tmp/src \
     echo 'APT::Install-Recommends "false";' > /etc/apt/apt.conf.d/99no-recommends && \
     apt-get update && \
     rosdep update --rosdistro "$ROS_DISTRO" && \
     rosdep install --from-paths /tmp/src --ignore-src -y --dependency-types exec && \
     apt-get install -y \
+        ros-humble-depth-image-proc \
         ros-humble-joy \
+        ros-humble-openni2-camera \
         ros-humble-rmw-cyclonedds-cpp \
         ros-humble-rmw-zenoh-cpp \
         ros-humble-rosbridge-server && \

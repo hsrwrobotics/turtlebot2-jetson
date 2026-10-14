@@ -42,7 +42,7 @@ ansible_become_pass=jetson
 
 ## 2. Create the environment file
 
-The `kobuki` container reads `/opt/compose/.env` (for `NAMESPACE`), which the playbook copies from `deploy/.env`. That file is **not committed**. Create it locally:
+The stack reads `/opt/compose/.env`, which the playbook copies from `deploy/.env`. That file is **not committed**. Create it locally:
 
 ```bash
 cp deploy/.env.example deploy/.env
@@ -77,7 +77,7 @@ The playbook does two things:
 On a board:
 
 ```bash
-docker ps          # expect kobuki, rosbridge all running
+docker ps          # expect kobuki, camera, rosbridge all running
 ```
 
 ## Files
@@ -85,7 +85,7 @@ docker ps          # expect kobuki, rosbridge all running
 - `playbook.yaml` — the Ansible automation (provision + deploy).
 - `inventory.ini` — board IPs + credentials.
 - `ansible.cfg` — Ansible defaults (inventory path, Python interpreter).
-- `deploy/docker-compose.yml` — the two-container stack.
+- `deploy/docker-compose.yml` — the three-container stack (kobuki, camera, rosbridge).
 - `deploy/.env.example` — template for `deploy/.env` (copy it; never commit the real one).
 - `deploy/60-kobuki.rules` — host udev rule that creates `/dev/kobuki`; the `kobuki` container sees it through its `/dev` mount.
 - `kobuki/` — multi-stage Dockerfile for the ROS 2 Humble Kobuki image.
